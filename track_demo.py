@@ -1,7 +1,5 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-import ctypes
-import inspect
 
 import numpy
 import math
@@ -11,6 +9,7 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import *
 from track import *
 from yolov5.utils.general import check_img_size
+import sys
 
 
 class Ui_MainWindow(QWidget):
@@ -20,7 +19,8 @@ class Ui_MainWindow(QWidget):
         self.cap = cv2.VideoCapture()
         self.queue = Queue()
         self.qmut_1 = QMutex()
-        self.origin_coord = [960, 540]
+        # self.origin_coord = [960, 540]
+        self.origin_coord = [384, 288]
         self.func_weight = [1, 0, 0]
         self.product_thread = ProductThread(cap=self.cap)
         self.consume_thread = ConsumeThread(qmut_1=self.qmut_1, queue=self.queue)
@@ -414,8 +414,9 @@ class ConsumeThread(QThread):
     def opts(self):
         parser = argparse.ArgumentParser()
         parser.add_argument('--weights', type=str, default='yolov5/weights/yolov5x.pt', help='model.pt path')
-        parser.add_argument('--source', type=str, default='rtsp://iscas:opqwer12@192.168.100.176:554/Streaming'
-                                                          '/Channels/101', help='source')  # file/folder, 0 for webcam
+        # parser.add_argument('--source', type=str, default='rtsp://iscas:opqwer12@192.168.100.176:554/Streaming'
+        #                                                   '/Channels/101', help='source')  # file/folder, 0 for webcam
+        parser.add_argument('--source', type=str, default='jinxingren.avi', help='source')  # file/folder, 0 for webcam
         parser.add_argument('--output', type=str, default='inference/output', help='output folder')  # output folder
         parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')
         parser.add_argument('--conf-thres', type=float, default=0.4, help='object confidence threshold')
@@ -437,6 +438,7 @@ class ConsumeThread(QThread):
     def detect(self, opt):
         print("before detect lock")
         self.qmut_1.lock()
+        qmut_1_lock = True
         print("after detect lock")
         out, source, weights, view_img, save_txt, imgsz = \
             opt.output, opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
@@ -557,9 +559,11 @@ class ConsumeThread(QThread):
                     # self.detOut.emit(im0)
                     self.queue.put(im0)
                     # if self.queue.qsize() > 3:
-                    self.qmut_1.unlock()
+                    # if qmut_1_lock:
+                    #     self.qmut_1.unlock()
+                    #     qmut_1_lock = False
                     if self.queue.qsize() > 1:
-
+                        self.qmut_1.unlock()
                         self.queue.get(False)
                         self.queue.task_done()
                     else:
