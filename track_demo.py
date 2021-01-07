@@ -19,9 +19,9 @@ class Ui_MainWindow(QWidget):
         self.cap = cv2.VideoCapture()
         self.queue = Queue()
         self.qmut_1 = QMutex()
-        # self.origin_coord = [960, 540]
-        self.origin_coord = [384, 288]
-        self.func_weight = [1, 0, 0]
+        self.origin_coord = [960, 540]  # 原点设置到图像的中央，所以这个坐标一定要设置正确，不然画得直线会出问题
+        # self.origin_coord = [384, 288]  此处设置的远点坐标对应下面opts中source设置的那个视频，可以不用管
+        self.func_weight = [1, 0, 0]  # 这三个权重对应直线坐标Ax + By + C = 0中的[A, B, C]
         self.product_thread = ProductThread(cap=self.cap)
         self.consume_thread = ConsumeThread(qmut_1=self.qmut_1, queue=self.queue)
         self.paint_thread = PaintLineThread(qmut_1=self.qmut_1, origin_coord=self.origin_coord,
@@ -414,9 +414,9 @@ class ConsumeThread(QThread):
     def opts(self):
         parser = argparse.ArgumentParser()
         parser.add_argument('--weights', type=str, default='yolov5/weights/yolov5x.pt', help='model.pt path')
-        # parser.add_argument('--source', type=str, default='rtsp://iscas:opqwer12@192.168.100.176:554/Streaming'
-        #                                                   '/Channels/101', help='source')  # file/folder, 0 for webcam
-        parser.add_argument('--source', type=str, default='jinxingren.avi', help='source')  # file/folder, 0 for webcam
+        parser.add_argument('--source', type=str, default='rtsp://iscas:opqwer12@192.168.100.176:554/Streaming'
+                                                          '/Channels/101', help='source')  # file/folder, 0 for webcam
+        # parser.add_argument('--source', type=str, default='jinxingren.avi', help='source')
         parser.add_argument('--output', type=str, default='inference/output', help='output folder')  # output folder
         parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')
         parser.add_argument('--conf-thres', type=float, default=0.4, help='object confidence threshold')
